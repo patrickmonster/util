@@ -281,9 +281,9 @@ Element.prototype.attr = function (e, f) {
 
         /// expr
         const convertColumsData = (column) =>{
-            if (column.type != 'expr') {
-                return {};
-            }
+            // if (column.type != 'expr') {
+            //     return {};
+            // }
             
             const { expr, as } = column;
             switch(expr.type) {
@@ -344,11 +344,10 @@ Element.prototype.attr = function (e, f) {
             // 
 
             for ( const column of columns){
-                switch(column.type) {
-                    case "expr":{ // - 단일 컬럼에 대한 정보
+                switch(true) {
+                    case "expr" in column:{ // - 단일 컬럼에 대한 정보
                         const data=   convertColumsData(column);
                         console.log(data);
-                        // { column, as , table } 
                         break;
                     }
                     case "function" : {
