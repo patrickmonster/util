@@ -1,0 +1,480 @@
+<head>
+    <!-- <script src="https://unpkg.com/node-sql-parser/umd/mysql.umd.js"></script>
+    -->
+    <script src="https://unpkg.com/node-sql-parser/umd/postgresql.umd.js"></script>
+    <meta charset="utf-8"/>
+    <style>
+        /* textarea.numbered {
+    background: url(/2cOaJ.png);
+    background-attachment: local;
+    background-repeat: no-repeat;
+    padding-left: 35px;
+    padding-top: 10px;
+    border-color:#ccc;
+} */
+/* 
+        textarea { width: auto; height: 500px; font-size: 11px; font-family: monospace; line-height: 15px; font-weight: 500; margin: 0; padding: 0; resize: both; color: #ffa; border: 0; background-color: #222; white-space: pre; overflow: auto; }
+
+        textarea {
+            scrollbar-arrow-color: #ee8;
+            scrollbar-base-color: #444;
+            scrollbar-track-color: #666;
+            scrollbar-face-color: #444;
+            scrollbar-3dlight-color: #444;
+            scrollbar-highlight-color: #666;
+            scrollbar-darkshadow-color: #444;
+            scrollbar-shadow-color: #222;
+        } */
+    </style>
+    <script>
+const lib_n="_patrickmonster";//라이브러리 네임
+Element.prototype.on=window.on=function(){//이벤트명/실행함수//이후에는 넘기는 인자
+	var a=arguments,b=a.length,c,d=this,e=[],f=0;
+	if(b<2)return d;//적용x
+	libElement(d);
+	c=d[lib_n].event[a[0]];//이벤트 스텍
+	if(!c)c=[];
+	for(;f<b-2;f++)
+		e.push(a[f+2]);
+	c.push({f:a[1],args:e});
+	if(d["on"+a[0]]==null)
+		d["on"+a[0]]=function(j){
+			e=d[lib_n].event[a[0]];
+			for(f=0;f<e.length;f++)
+				e[f].f.call(d,j,e[f].args);
+		};
+	d[lib_n].event[a[0]]=c;
+	return d;
+};
+Element.prototype.C= function(ele){var ele=document.createElement(ele);this.appendChild(ele);return ele;};
+Element.prototype.attr = function (e, f) {
+  if (f) {
+    this.setAttribute(e, f);
+    return this;
+  } else return this.getAttribute(e);
+};
+
+        // 캔버스를 통해서, 텍스트 에어리어의 라인넘버를 그려준다.
+        class TextAreaLineNumbersWithCanvas {
+
+
+
+            constructor(target) {
+                this.target = target;
+
+                const div = document.createElement('div'); // root
+                const cssTable = 'padding:0px 0px 0px 0px!important; margin:0px 0px 0px 0px!important; font-size' +
+                        ':1px;line-height:0px; width:auto;';
+                const cssTd1 = 'border:1px #345 solid; border-right:0px; vertical-align:top; width:1px; backgr' +
+                        'ound: #303030';
+                const cssTd2 = 'border:1px #345 solid; border-left:0px; vertical-align:top;';
+                const cssButton = 'width:120px; height:40px; border:1px solid #333 !important; border-bottom-colo' +
+                        'r: #484!important; color:#ffe; background-color:#222;';
+                const cssCanvas = 'border:0px; background-color:#1c1c20; margin-top:0px; padding-top:0px;';
+                
+                const table = div.C("table")
+                table.attr('cellspacing', '0');
+                table.attr('cellpadding', '0');
+                table.attr('style', cssTable + ' ' + this.target.getAttribute('style'));
+                const tr = table.C("tr");
+                const canvas = tr.C("td").attr('style', cssTd1).C("canvas");
+                const td = tr.C("td").attr('style', cssTd2)
+
+                this.target.parentNode.insertBefore(div, this.target);
+                // div.attr('style', this.target.getAttribute('style'));
+                
+                td.appendChild(this.target);
+                this.target.attr('style', 'width: 100%; height: 100%; font-size: 11px; font-family: monospace; line-height: 15px; font-weight: 500; margin: 0; padding: 0; resize: both; color: #ffa; border: 0; background-color: #222; white-space: pre; overflow: auto;');
+
+                
+                // const canvas = document.createElement('canvas');
+                canvas.width = 48; // must not set width & height in css !!!
+                canvas.height = 500; // must not set width & height in css !!!
+                canvas.attr('style', cssCanvas);
+                this.canvasLines = canvas;
+
+                this.target.onscroll = this.paintLineNumbers.bind(this);
+                this.target.onmousedown = this.onmousedown.bind(this);
+                this.target.onmouseup = this.onmouseup.bind(this);
+                this.target.onmousemove = this.onmousemove.bind(this);
+                
+                this.paintLineNumbers();
+
+                this.target.textAreaLineNumbersWithCanvas = this
+                return this.target;
+            }
+
+            onmousedown() {
+                this.mouseisdown = true;
+            }
+            onmouseup () {
+                this.mouseisdown = false;
+                this.paintLineNumbers();
+            };
+            onmousemove() {
+                if (this.mouseisdown) 
+                    this.paintLineNumbers();
+            };
+            
+            paintLineNumbers(){
+                try {
+                    const canvas = this.canvasLines;
+                    if (canvas.height != this.target.clientHeight) 
+                        canvas.height = this.target.clientHeight; // on resize
+                    const ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#303030";
+                    ctx.fillRect(0, 0, 42, this.target.scrollHeight + 1);
+                    ctx.fillStyle = "#808080";
+                    ctx.font = "11px monospace";
+                    const startIndex = Math.floor(this.target.scrollTop / 15, 0);
+                    const endIndex = startIndex + Math.ceil(this.target.clientHeight / 15, 0);
+
+                    for (let i = startIndex; i < endIndex; i++) {
+                        const text = '' + (
+                            1 + i
+                        ); 
+                        ctx.fillText(text, 40 - (text.length * 6), 10 - this.target.scrollTop + (i * 15));
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert(e);
+                }
+
+            }
+        }
+    </script>
+</head>
+<body>
+<textarea id="sql_input" style="width: 100%; height: 50vh;" class="numbered">
+</textarea> <button id="sql_submit">Submit</button>
+    <div id="table"></div>
+    <div id="sql_output"></div>
+    <div id="logs"></div>
+    <script>
+        const tableColums = {};
+
+        const replaceTypeCast = {
+            'bpchar': 'char'
+        }
+
+        const deleteFrontSpace = (str) => {
+            const lines = str.split("\n");
+            let minSpace = 100000000;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const space = line.match(/^\s+/g);
+                if (space) {
+                    const spaceLength = space[0].length;
+                    if (minSpace >= spaceLength) {
+                        minSpace = spaceLength;
+                    }
+                } else 
+                    minSpace = 0;
+                }
+            
+            return lines
+                .map(l => l.substring(minSpace))
+                .join("\n");
+        }
+        const parser = new NodeSQLParser.Parser()
+
+        const getSql = () => {
+            let sql = deleteFrontSpace(sql_input.value);
+
+            Object
+                .keys(replaceTypeCast)
+                .forEach(k => sql = sql.replace(new RegExp(k, 'gi'), replaceTypeCast[k]))
+
+            sql_input.value = sql;
+            return sql;
+        }
+
+        const printError = (e) => {
+            const {
+                expected,
+                found,
+                location: {
+                    start,
+                    end
+                },
+                message,
+                name,
+                stack
+            } = e;
+
+            console.log({
+                expected,
+                found,
+                start,
+                end,
+                message,
+                name,
+                stack
+            });
+            return JSON.stringify({start, end})
+        }
+
+        const printTableColums = (columns) => {
+            for (const column of columns) {
+                const {
+                    expr: {
+                        type,
+                        table,
+                        column: name,
+                        value
+                    },
+                    as
+                } = column;
+
+                switch (type) {
+                    case 'column_ref':
+                        console.log(`${table}.${name} as ${as || name}`);
+                        break;
+                    case 'function':
+                        break;
+                    case 'number':
+                    case 'string':
+                        console.log(`${value} as ${as || name}`);
+                        break;
+                }
+            }
+        }
+
+        const convertTableSpace = (tables) => {
+            for (const table of tables) {
+                const {db, table: name, as} = table;
+                // console.log(`${db}.${name} as ${as || name}`);
+                tableColums[name] = Object.assign({
+                    columns: []
+                }, tableColums[name], {db, as, name});
+            }
+        }
+
+        const appendTableColumn = (tableOrAlias, column) => {
+            if (!tableOrAlias) 
+                return;
+            Object
+                .values(tableColums)
+                .forEach(table => {
+                    if (table.name === tableOrAlias || table.as === tableOrAlias) 
+                        table
+                            .columns
+                            .push(column);
+                    }
+                );
+        }
+
+        let g_line = 0;
+
+        console.log = (...args) => {
+            g_line++;
+            document.getElementById('logs').innerHTML += `${g_line} ] ${args.map(o => ['object', 'array'].includes(typeof o) ? JSON.stringify(o) : o).join(" ")} <br/>`;
+            
+        }
+
+        const convertTable = (tables) => {
+            for (const table of tables) {
+                const {db, table: name, as} = table;
+                // console.log("????????????????????????",`${db}.${name} as ${as || name}`);
+
+            }
+        }
+
+        /// expr
+        const convertColumsData = (column) =>{
+            if (column.type != 'expr') {
+                return {};
+            }
+            
+            const { expr, as } = column;
+            switch(expr.type) {
+                case "column_ref":{
+                    const { table, column } = expr;
+                    return { column, as, table };
+                }
+                case "function":{
+                    //  {"type":"function","name":"coalesce","args":{"type":"expr_list","value":[{"type":"column_ref","table":"A","column":"TMP_PWD_YN"},{"type":"single_quote_string","value":"0"}]}}
+                    break;
+                }
+                case "expr": { // 서브쿼리
+                    // return printTableColumsByOut(expr.ast);
+                    break;
+                }
+                case "case":{
+
+                    break
+                }
+                default : {
+                    if ( 'ast' in expr) {
+                        console.log(printTableColumsByOut(expr.ast));
+                    }else {
+                        console.log("expr?", expr);
+                    }
+                    break;
+                }
+            }
+
+        }
+
+        const printTableColumsByOut = (table) => {
+            if ( 'length' in table) {
+                for (const t of table) {
+                    printTableColumsByOut(t);
+                }
+                return;
+            }
+            // console.log(table);
+            
+            if (table.type != 'select'){
+                return; // 제공하지 않는 구문 분석
+            }
+            
+            const tableObject = {}
+
+            const { from, columns } =  table ;
+
+            // 테이블 정보를 수집한다.
+            for ( const {expr, as, table} of from){
+                // tableObject[as || expr.table] = expr.table;
+                if ( table ){
+                    tableObject[as || table] = {table, columns : []};
+                }else {
+                    tableObject[as || expr] = expr;
+                }
+            }
+            // 
+
+            for ( const column of columns){
+                switch(column.type) {
+                    case "expr":{ // - 단일 컬럼에 대한 정보
+                        const data=   convertColumsData(column);
+                        console.log(data);
+                        // { column, as , table } 
+                        break;
+                    }
+                    case "function" : {
+                        break;
+                    }
+                    default:
+                        console.log("??", column);
+                }
+            }
+
+
+            return tableObject;
+        }
+
+        const createTableSpace = (title, columns) => {
+            const ul = document.createElement('ul');
+            ul.C('li').innerHTML = title;
+            for (const column of columns){
+                ul.C('li').innerHTML = column;
+            }
+            return ul
+        }
+
+        const clickSubmitButton = () => {
+            var sql = getSql();
+            console.info("SQL", sql);
+            document.getElementById('logs').innerHTML = ''
+            try {
+                var ast = parser.astify(sql);
+                printTableColumsByOut(ast);
+                // console.log(out);
+            } catch (e) {
+                console.log(printError(e));
+                const { location, message, name } = e;
+                sql_output.innerHTML = JSON.stringify({message, name, location});
+            } finally {
+                // console.log(sql);
+            }
+        }
+
+        window.onload = function () {
+            var sql_input = document.getElementById("sql_input");
+            var sql_submit = document.getElementById("sql_submit");
+            var sql_output = document.getElementById("sql_output");
+            sql_submit.onclick = clickSubmitButton;
+
+            sql_input.value = `
+            SELECT
+                        A.CO_ID AS COID,
+                        A.USER_ID AS USERID,
+                        A.USER_NM AS USERNAME,
+                        A.PWD_NO as password,
+                        A.USER_STS_CD AS USERSTSCD,
+                        A.EMP_NO AS EMPNO,
+                        A.REG_DTM AS REGDTM,
+                        A.UPD_DTM AS UPDDTM,
+                        A.STARTSYS_CL AS STARTSYSCL,
+                        A.LOGIN_ID AS LOGINID,
+                        B.MAIL_ID AS EMAILADDR,
+                        B.HANDPHONE_NO AS MOBNO,
+                        B.COTEL_NO AS TELNO,
+                        coalesce(A.TMP_PWD_YN, '0') AS TMPPWDYN,
+                        A.COM_CD AS COMCD,
+                        B.DEPT_CD AS DEPTCD,
+                        C.DEPT_NM AS DEPTNM,
+                        C.CC_CD AS COSTCT,
+                        A.USR_CL_CD AS USRCLCDPORTAL /* 1:임직원, 2:고객, 3:협력회사 */ ,
+                        A.USER_CL_VAL AS USERCLVAL /* 협력사인경우 협력사번호 */ ,
+                        (
+                        WITH RECURSIVE FSYN(DEPT_CD,DEPTUP_CD,LVL,PATH,CYCLE) AS
+                        (
+                        SELECT
+                        X.DEPT_CD
+                        ,X.DEPTUP_CD
+                        ,X.DEPT_LVL
+                        ,ARRAY[X.DEPTUP_CD :: TEXT]
+                        ,FALSE
+                        FROM FRAMEONE_DEPT X
+                        WHERE DEPT_CD = C.DEPT_CD
+                        UNION ALL
+                        SELECT
+                        Y.DEPT_CD
+                        ,Y.DEPTUP_CD
+                        ,Y.DEPT_LVL
+                        ,ARRAY_APPEND(FSYN.PATH,Y.DEPTUP_CD :: TEXT)
+                        ,FALSE
+                        FROM FRAMEONE_DEPT Y
+                        JOIN FSYN ON FSYN.DEPTUP_CD = Y.DEPT_CD
+                        )
+                        SELECT CASE WHEN DEPT_CD=(SELECT COMM_CD FROM FRAMEONE_CODE WHERE COMM_CL_CD = 'FRAMEONE_DEPT') THEN '1' ELSE '0' END AS FS_YN
+                        FROM FSYN
+                        WHERE LVL = 1
+                        ) AS ISFS,
+                        (SELECT CASE WHEN COUNT(1)=0 THEN '0' ELSE '1' END
+                        FROM FRAMEONE_CODE
+                        WHERE COMM_CL_CD = 'FRAMEONE_HDO'
+                        AND COMM_CD = B.DEPT_CD
+                        AND USE_YN = '1'
+                        ) AS ISHDO,
+                        coalesce(D.WRK_YN,'0') AS ISCNSR,
+                        CASE WHEN B.JIKGUB_CD IS NOT NULL
+                        THEN
+                        CASE WHEN SUBSTR(B.JIKGUB_CD, LENGTH(B.JIKGUB_CD))='N'
+                        THEN 'N'
+                        WHEN SUBSTR(B.JIKGUB_CD, LENGTH(B.JIKGUB_CD))='C'
+                        THEN 'C'
+                        WHEN SUBSTR(B.JIKGUB_CD, LENGTH(B.JIKGUB_CD))='S'
+                        THEN 'S'
+                        ELSE 'E'
+                        END
+                        ELSE ''
+                        END AS JIKGUB
+                        FROM FRAMEONE_USER A
+                        LEFT OUTER JOIN FRAMEONE_EMP B ON A.EMP_NO = B.EMP_NO AND A.COM_CD = B.COM_CD AND A.CO_ID = B.CO_ID
+                        LEFT OUTER JOIN TCSBA055 D ON B.EMP_NO = D.CNSR_EMP_NO AND B.CO_ID = D.CO_ID AND D.WRK_YN = '1'
+                        LEFT OUTER JOIN FRAMEONE_DEPT C ON B.COM_CD = C.COM_CD AND B.DEPT_CD = C.DEPT_CD AND B.CO_ID = C.CO_ID       
+                        WHERE A.CO_ID = 'FW00'
+--                        AND A.LOGIN_ID = 'hyeonjin'
+                        AND A.USR_CL_CD != '2' /* 고객인 아닌경우 접근가능 */
+                        AND A.USE_YN = '1'
+                        LIMIT 1;
+            `
+            
+            new TextAreaLineNumbersWithCanvas(sql_input)
+            clickSubmitButton()
+        }
+    </script>
+</body>
