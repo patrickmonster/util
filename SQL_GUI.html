@@ -144,8 +144,7 @@ Element.prototype.attr = function (e, f) {
     </script>
 </head>
 <body>
-<textarea id="sql_input" style="width: 100%; height: 50vh;" class="numbered">
-</textarea> <button id="sql_submit">Submit</button>
+<textarea id="sql_input" style="width: 100%; height: 50vh;" class="numbered"></textarea> 
     <div id="table"></div>
     <div id="sql_output"></div>
     <div id="logs"></div>
@@ -289,9 +288,12 @@ Element.prototype.attr = function (e, f) {
             switch(expr.type) {
                 case "column_ref":{
                     const { table, column } = expr;
-                    return { column, as, table };
+                    return { column, as : as || column, table };
                 }
                 case "function":{
+                    console.log("????", expr);
+                    
+
                     //  {"type":"function","name":"coalesce","args":{"type":"expr_list","value":[{"type":"column_ref","table":"A","column":"TMP_PWD_YN"},{"type":"single_quote_string","value":"0"}]}}
                     break;
                 }
@@ -390,9 +392,8 @@ Element.prototype.attr = function (e, f) {
 
         window.onload = function () {
             var sql_input = document.getElementById("sql_input");
-            var sql_submit = document.getElementById("sql_submit");
             var sql_output = document.getElementById("sql_output");
-            sql_submit.onclick = clickSubmitButton;
+            sql_input.onchange = clickSubmitButton
 
             sql_input.value = `
 WITH RECURSIVE cte AS (
