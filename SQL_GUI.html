@@ -1,7 +1,6 @@
 <head>
-    <!-- <script src="https://unpkg.com/node-sql-parser/umd/mysql.umd.js"></script>
-    -->
-    <script src="https://unpkg.com/node-sql-parser/umd/postgresql.umd.js"></script>
+    <script src="https://unpkg.com/node-sql-parser/umd/mysql.umd.js"></script>
+    <!-- <script src="https://unpkg.com/node-sql-parser/umd/postgresql.umd.js"></script> -->
     <meta charset="utf-8"/>
     <style>
         /* textarea.numbered {
@@ -397,80 +396,49 @@ Element.prototype.attr = function (e, f) {
             sql_submit.onclick = clickSubmitButton;
 
             sql_input.value = `
-            SELECT
-                        A.CO_ID AS COID,
-                        A.USER_ID AS USERID,
-                        A.USER_NM AS USERNAME,
-                        A.PWD_NO as password,
-                        A.USER_STS_CD AS USERSTSCD,
-                        A.EMP_NO AS EMPNO,
-                        A.REG_DTM AS REGDTM,
-                        A.UPD_DTM AS UPDDTM,
-                        A.STARTSYS_CL AS STARTSYSCL,
-                        A.LOGIN_ID AS LOGINID,
-                        B.MAIL_ID AS EMAILADDR,
-                        B.HANDPHONE_NO AS MOBNO,
-                        B.COTEL_NO AS TELNO,
-                        coalesce(A.TMP_PWD_YN, '0') AS TMPPWDYN,
-                        A.COM_CD AS COMCD,
-                        B.DEPT_CD AS DEPTCD,
-                        C.DEPT_NM AS DEPTNM,
-                        C.CC_CD AS COSTCT,
-                        A.USR_CL_CD AS USRCLCDPORTAL /* 1:임직원, 2:고객, 3:협력회사 */ ,
-                        A.USER_CL_VAL AS USERCLVAL /* 협력사인경우 협력사번호 */ ,
-                        (
-                        WITH RECURSIVE FSYN(DEPT_CD,DEPTUP_CD,LVL,PATH,CYCLE) AS
-                        (
-                        SELECT
-                        X.DEPT_CD
-                        ,X.DEPTUP_CD
-                        ,X.DEPT_LVL
-                        ,ARRAY[X.DEPTUP_CD :: TEXT]
-                        ,FALSE
-                        FROM FRAMEONE_DEPT X
-                        WHERE DEPT_CD = C.DEPT_CD
-                        UNION ALL
-                        SELECT
-                        Y.DEPT_CD
-                        ,Y.DEPTUP_CD
-                        ,Y.DEPT_LVL
-                        ,ARRAY_APPEND(FSYN.PATH,Y.DEPTUP_CD :: TEXT)
-                        ,FALSE
-                        FROM FRAMEONE_DEPT Y
-                        JOIN FSYN ON FSYN.DEPTUP_CD = Y.DEPT_CD
-                        )
-                        SELECT CASE WHEN DEPT_CD=(SELECT COMM_CD FROM FRAMEONE_CODE WHERE COMM_CL_CD = 'FRAMEONE_DEPT') THEN '1' ELSE '0' END AS FS_YN
-                        FROM FSYN
-                        WHERE LVL = 1
-                        ) AS ISFS,
-                        (SELECT CASE WHEN COUNT(1)=0 THEN '0' ELSE '1' END
-                        FROM FRAMEONE_CODE
-                        WHERE COMM_CL_CD = 'FRAMEONE_HDO'
-                        AND COMM_CD = B.DEPT_CD
-                        AND USE_YN = '1'
-                        ) AS ISHDO,
-                        coalesce(D.WRK_YN,'0') AS ISCNSR,
-                        CASE WHEN B.JIKGUB_CD IS NOT NULL
-                        THEN
-                        CASE WHEN SUBSTR(B.JIKGUB_CD, LENGTH(B.JIKGUB_CD))='N'
-                        THEN 'N'
-                        WHEN SUBSTR(B.JIKGUB_CD, LENGTH(B.JIKGUB_CD))='C'
-                        THEN 'C'
-                        WHEN SUBSTR(B.JIKGUB_CD, LENGTH(B.JIKGUB_CD))='S'
-                        THEN 'S'
-                        ELSE 'E'
-                        END
-                        ELSE ''
-                        END AS JIKGUB
-                        FROM FRAMEONE_USER A
-                        LEFT OUTER JOIN FRAMEONE_EMP B ON A.EMP_NO = B.EMP_NO AND A.COM_CD = B.COM_CD AND A.CO_ID = B.CO_ID
-                        LEFT OUTER JOIN TCSBA055 D ON B.EMP_NO = D.CNSR_EMP_NO AND B.CO_ID = D.CO_ID AND D.WRK_YN = '1'
-                        LEFT OUTER JOIN FRAMEONE_DEPT C ON B.COM_CD = C.COM_CD AND B.DEPT_CD = C.DEPT_CD AND B.CO_ID = C.CO_ID       
-                        WHERE A.CO_ID = 'FW00'
---                        AND A.LOGIN_ID = 'hyeonjin'
-                        AND A.USR_CL_CD != '2' /* 고객인 아닌경우 접근가능 */
-                        AND A.USE_YN = '1'
-                        LIMIT 1;
+WITH RECURSIVE cte AS (
+    SELECT 
+        0 AS pos,
+        id,
+        0 AS parent_id,
+        CAST(id AS char(255)) AS _path,
+        message,
+        post_id,
+        use_yn,
+        create_user,
+        create_at,
+        update_at
+    FROM commant 
+    WHERE parent_id IS NULL AND post_id = ?
+    UNION ALL
+    SELECT 
+        pos + 1,
+        c.id,
+        c.parent_id,
+        concat(_path, '>', c.parent_id) AS _path,
+        c.message,
+        c.post_id,
+        c.use_yn,
+        c.create_user,
+        c.create_at,
+        c.update_at
+    FROM commant c
+    JOIN cte ON c.parent_id = cte.id
+    WHERE c.post_id = ?
+)
+SELECT pos
+    , c.id
+    , if(c.use_yn = 'N', '삭제된 덧글 입니다.', c.message) AS message
+    , c.use_yn
+    , c.create_at
+    , c.update_at
+    , a.auth_id
+    , a.name
+    , a.tag
+    , IF(a.avatar IS NOT NULL, concat('https://cdn.discordapp.com/avatars/', a.auth_id, '/', a.avatar, '.png'), null ) AS avatar
+FROM cte c
+LEFT JOIN auth a ON c.create_user = a.auth_id 
+ORDER BY _path, create_at
             `
             
             new TextAreaLineNumbersWithCanvas(sql_input)
