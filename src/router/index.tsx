@@ -5,6 +5,7 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import Main from "@/page/Main";
 import PageNotFound from "@/page/PageNotFound";
+import Html from "@/page/html";
 
 ///////////////////////////////////////////////////////////////////////////////////////
 const ErrorFallback = () => (
@@ -20,6 +21,10 @@ const routes: RouteObject[] = [
   {
     path: "/",
     element: <Main />,
+  },
+  {
+    path: "/html",
+    element: <Html />,
   },
   {
     path: "/*",
