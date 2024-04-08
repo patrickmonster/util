@@ -1,11 +1,10 @@
 import { getParameter } from "@/lib/window";
-import { RouteObject, useRoutes } from "react-router-dom";
-
-import { ErrorBoundary } from "react-error-boundary";
+import { RouteObject, createBrowserRouter } from "react-router-dom";
 
 import Main from "@/page/Main";
 import PageNotFound from "@/page/PageNotFound";
 import Html from "@/page/html";
+import { ErrorBoundary } from "react-error-boundary";
 
 ///////////////////////////////////////////////////////////////////////////////////////
 const ErrorFallback = () => (
@@ -32,11 +31,11 @@ const routes: RouteObject[] = [
   },
 ];
 
-function Router() {
+export default () => {
   const ex = getParameter("EX");
   const r = routes;
 
-  return useRoutes(
+  return createBrowserRouter(
     r.map(
       (route): RouteObject =>
         Object.assign(route, {
@@ -55,6 +54,4 @@ function Router() {
         })
     ) as RouteObject[]
   );
-}
-
-export default Router;
+};
