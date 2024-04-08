@@ -4,7 +4,7 @@ import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "/util",
+  // base: "/util",
   build: {
     commonjsOptions: {
       include: ["tailwind.config.js", "node_modules/**"],

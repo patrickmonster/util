@@ -57,6 +57,7 @@ const contnet = `
 
   <body>
     <div class="page-hero"></div>
+    <img />
     <div class="page-body">
       <header class="page-header">
   <div class="container">
@@ -1063,6 +1064,37 @@ const getTag = (node: string) => {
   return (node.match(/^<?\/?[a-zA-Z0-9]+/gi)?.[0] || "").trimEnd();
 };
 
+const getXPathFromNode = (node: Node | Element) => {
+  const paths: string[] = [];
+  while ([Node.ELEMENT_NODE, Node.TEXT_NODE].includes(node.nodeType)) {
+    let index = 0;
+    if ((node as Element).id) {
+      const selector = `[id="${(node as Element).id}"]`;
+      const { length } = document.querySelectorAll(selector);
+      if (length === 1) {
+        paths.splice(0, 0, `/*[@id="${(node as Element).id}"][1]`);
+        break;
+      }
+    }
+    for (
+      let sibling = node.previousSibling;
+      sibling;
+      sibling = sibling.previousSibling
+    ) {
+      if (sibling.nodeType === Node.DOCUMENT_TYPE_NODE) continue;
+      if (sibling.nodeName === node.nodeName) index++;
+    }
+    const tagName =
+      node.nodeType === Node.ELEMENT_NODE
+        ? node.nodeName.toLowerCase()
+        : "text()";
+    const pathIndex = index ? `[${index + 1}]` : "";
+    paths.splice(0, 0, tagName + pathIndex);
+    node = node.parentNode as Node;
+  }
+  return paths.length ? `/${paths.join("/")}` : null;
+};
+
 export default () => {
   const [html, setHtml] = useState<string>();
   const [error, setError] = useState<Element>();
@@ -1079,9 +1111,22 @@ export default () => {
 
     const parsererror = doc.querySelector("parsererror");
     if (parsererror) {
+      // 오류가 있을 경우 (문서 자체 내부 오류)
       setError(parsererror);
       parsererror.remove();
+      console.log(parsererror);
     }
+
+    doc.querySelectorAll("img").forEach((img) => {
+      // 각종 테그 수동 검증
+      if (!img.getAttribute("src")) {
+        const p = doc.createElement("p");
+        p.style.color = "red";
+        p.innerHTML = "src 속성이 없습니다.";
+        setError(p);
+      }
+    });
+
     setOrigin(doc);
   }, [html]);
 
