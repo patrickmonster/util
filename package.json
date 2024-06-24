@@ -13,7 +13,11 @@
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.7",
+    "@types/lodash": "^4.17.5",
+    "EventEmitter": "^1.0.0",
     "html-validate": "^8.18.1",
+    "isomorphic-ws": "^5.0.0",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-error-boundary": "^4.0.12",
@@ -21,6 +25,16 @@
     "shx": "^0.3.4",
     "styled-components": "^6.1.8",
     "tailwindcss": "^3.4.1"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "arrowParens": "avoid",
+    "endOfLine": "lf",
+    "singleQuote": true,
+    "semi": true,
+    "bracketSpacing": true,
+    "printWidth": 120,
+    "tabWidth": 4
   },
   "devDependencies": {
     "@types/node": "^20.12.4",

@@ -1,9 +1,9 @@
 import { getParameter } from "@/lib/window";
-import { RouteObject, createBrowserRouter } from "react-router-dom";
+import { RouteObject, useRoutes } from "react-router-dom";
 
 import Main from "@/page/Main";
 import PageNotFound from "@/page/PageNotFound";
-import Html from "@/page/html";
+import BotChzzk from "@/page/bot/chzzk";
 import { ErrorBoundary } from "react-error-boundary";
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -22,8 +22,8 @@ const routes: RouteObject[] = [
     element: <Main />,
   },
   {
-    path: "/html",
-    element: <Html />,
+    path: "/chzzk/bot",
+    element: <BotChzzk />,
   },
   {
     path: "/*",
@@ -35,7 +35,7 @@ export default () => {
   const ex = getParameter("EX");
   const r = routes;
 
-  return createBrowserRouter(
+  return useRoutes(
     r.map(
       (route): RouteObject =>
         Object.assign(route, {
