@@ -1,5 +1,6 @@
 import { EventEmitter } from '@/lib/EventEmitter';
-import WebSocket, { MessageEvent } from 'isomorphic-ws';
+
+// import WebSocket, { MessageEvent } from 'isomorphic-ws';
 /**
  * 채팅을 위한 소캣 입니다.
  */
@@ -584,8 +585,8 @@ export default class ChzzkWebSocket<
      * 메세지 수신 이벤트
      * @param message 수신 메세지
      */
-    private async handelMessage({ data }: MessageEvent) {
-        const { bdy: body, cmd, type, cid } = JSON.parse(data as string);
+    private handelMessage({ data }: MessageEvent) {
+        const { bdy: body, cmd, type, cid } = JSON.parse(data);
         this.emit('raw', { body, cmd });
 
         switch (cmd) {
@@ -621,7 +622,7 @@ export default class ChzzkWebSocket<
                     if (!parsed.profile || !parsed.profile?.userIdHash) continue;
 
                     // 자신의 메세지는 무시합니다.
-                    if (['f9e64bb112c323c9fb76d93f62aec429', this.uid].includes(parsed.profile.userIdHash)) continue;
+                    if ([this.uid].includes(parsed.profile.userIdHash)) continue;
 
                     switch (type) {
                         case ChatType.TEXT:
